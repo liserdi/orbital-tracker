@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "firebase/firestore";
 
@@ -34,7 +35,7 @@ const getCircS = () => {
     return `Ланцюг (Сталь): ${r[(1 + w) % 8]}`;
 };
 
-export default function App() {
+function App() {
   const [nick, setNick] = useState(localStorage.getItem('wf_nick') || '');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [tab, setTab] = useState('me');
@@ -47,7 +48,6 @@ export default function App() {
 
   const isAdmin = nick.toUpperCase() === 'LISERDI' || nick.toUpperCase() === 'АУГМЕНТ';
 
-  // Оновлення статусу "Online" (Heartbeat кожні 30 сек)
   useEffect(() => {
     if (!nick) return;
     const heartbeat = () => setDoc(doc(db, "players", nick), { lastSeen: Date.now() }, { merge: true });
@@ -56,7 +56,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [nick]);
 
-  // Отримання Тешіна з API
   useEffect(() => {
     fetch('https://api.warframestat.us/pc/steelPath')
       .then(res => res.json())
@@ -64,7 +63,6 @@ export default function App() {
       .catch(() => setTeshin("Тешін: Перевірити ротацію вручну"));
   }, []);
 
-  // Підписка на дані Firebase
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "players"), (snapshot) => {
       const players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -77,7 +75,6 @@ export default function App() {
     return () => unsub();
   }, [nick]);
 
-  // Таймер щотижневого оновлення
   useEffect(() => {
     const updateTimer = () => {
         const now = new Date();
@@ -194,7 +191,6 @@ export default function App() {
         .grid-cell { height: 6px; flex: 1; background: rgba(0,0,0,0.1); border-radius: 1px; margin: 0 1px; }
         .grid-cell.active { background: var(--gold-text); box-shadow: 0 0 5px var(--gold-text); }
 
-        /* Центрування для клан-хабу */
         .clan-card-header { display: flex; justify-content: space-between; align-items: center; min-height: 24px; }
         .player-info-block { display: flex; align-items: center; gap: 4px; }
         .status-space { width: 16px; display: flex; justify-content: center; align-items: center; }
@@ -287,3 +283,6 @@ export default function App() {
     </div>
   );
 }
+
+// Запуск додатка
+createRoot(document.getElementById('root')).render(<App />);
