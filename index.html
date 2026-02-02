@@ -1,35 +1,12 @@
 <!DOCTYPE html>
 <html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETERNUM INVICTUS | Orbital Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="glass-card">
-        <header>
-            <div class="theme-switch-wrapper">
-                <span id="theme-label">ДЕНЬ</span>
-                <label class="theme-switch" for="theme-checkbox">
-                    <input type="checkbox" id="theme-checkbox">
-                    <div class="slider round"></div>
-                </label>
-            </div>
-            <h1>Orbital Tracker</h1>
-            <div class="progress-container"><div id="progress-bar"></div></div>
-            <div id="reset-timer">Синхронізація...</div>
-        </header>
-
-        <div id="checklist"></div>
-
-        <div class="footer-ui">
-            <a href="https://discord.gg/VcczersTWR" target="_blank" class="discord-btn">JOIN DISCORD: AETERNUM INVICTUS</a>
-            <div class="authors">Orbital System v2.5 | <b>LISERDI & Аугмент</b></div>
-            <button id="reset-btn">СКИНУТИ ТИЖДЕНЬ ВРУЧНУ</button>
-        </div>
-    </div>
-    <script src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Warframe Orbital Tracker</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
