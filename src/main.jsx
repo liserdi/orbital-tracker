@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- ДИНАМІЧНІ ДАНІ (РОТАЦІЇ) ---
+// --- ДИНАМІЧНІ ДАНІ ---
 const getBird3 = () => {
     const s = ["Блакитний", "Бурштиновий", "Багряний"], start = new Date('2026-01-19T00:00:00Z');
     const w = Math.floor((new Date() - start) / 604800000);
@@ -98,6 +98,10 @@ function App() {
         {id:'ds', text: "Спуск (Сталь): Отримати нагороди"},
         {id:'w', text: "1999: Календар"}
     ],
+    "ЛАБОРАТОРІЇ": [
+        {id:'ga', text: "Часова Архімедія"},
+        {id:'eda', text: "Поглиблена Архімедія"}
+    ],
     "ОРБІТР": [
         {id:'teshin', text: teshin},
         {id:'iron', text: "Залізна Фортеця: Витратити уламки розколу"},
@@ -158,12 +162,9 @@ function App() {
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         :root { --bg-dark: #d1d9e6; --card-bg: #e6e9ef; --item-bg: rgba(255, 255, 255, 0.85); --gold-text: #a68b5a; --text-main: #2c3e50; --font-main: 'Exo 2', sans-serif; }
         [data-theme="dark"] { --bg-dark: #0a0d11; --card-bg: #1b222a; --item-bg: rgba(35, 44, 54, 0.9); --gold-text: #c2a67a; --text-main: #b0b8c1; }
-        
         .app-container { background: radial-gradient(circle at center, var(--bg-dark) 0%, #07090c 100%); min-height: 100vh; display: flex; justify-content: center; padding: 40px 20px; color: var(--text-main); font-family: var(--font-main); transition: 0.4s; position: relative; }
         .app-container::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png'); opacity: 0.08; pointer-events: none; }
-        
         .glass-card { position: relative; z-index: 1; background-color: var(--card-bg); border: 1px solid rgba(194, 166, 122, 0.2); border-radius: 4px; width: 100%; max-width: 500px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        
         .theme-switch-wrapper { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 5px; gap: 10px; }
         .theme-switch { position: relative; display: inline-block; width: 34px; height: 18px; cursor: pointer; }
         .theme-switch input { opacity: 0; width: 0; height: 0; }
@@ -171,34 +172,26 @@ function App() {
         .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--gold-text); }
         input:checked + .slider:before { transform: translateX(16px); }
-
         header h1 { color: var(--gold-text); text-align: center; text-transform: uppercase; letter-spacing: 2px; margin: 0; font-size: 24px; font-weight: 700; }
         .fuse-container { width: 100%; height: 4px; background: rgba(0,0,0,0.05); margin: 15px 0 5px; overflow: hidden; }
         .fuse-fill { height: 100%; background: linear-gradient(90deg, #fff, var(--gold-text)); transition: width 1s linear; }
         #reset-timer { text-align: center; font-size: 0.85em; opacity: 0.8; margin-bottom: 25px; font-weight: 600; }
-
         .category-title { color: var(--gold-text); font-size: 0.85em; font-weight: 700; margin: 20px 0 10px; text-transform: uppercase; display: flex; align-items: center; }
         .category-title::after { content: ""; flex-grow: 1; height: 1px; background: linear-gradient(to right, var(--gold-text), transparent); opacity: 0.3; margin-left: 15px; }
-
         .item { background-color: var(--item-bg); border: 1px solid rgba(0,0,0,0.03); margin-bottom: 8px; padding: 14px; display: flex; align-items: center; cursor: pointer; border-radius: 3px; border-left: 4px solid transparent; transition: 0.2s; }
         .item:hover { border-color: var(--gold-text); background: rgba(166, 139, 90, 0.05); transform: translateX(2px); }
         .checked-item { opacity: 0.4; }
-
         .tab-nav { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid rgba(166,139,90,0.2); }
         .tab-item { color: var(--gold-text); cursor: pointer; font-weight: 700; font-size: 0.8em; text-transform: uppercase; padding-bottom: 10px; opacity: 0.5; transition: 0.3s; }
         .tab-item.active { opacity: 1; border-bottom: 2px solid var(--gold-text); }
-
         .grid-cell { height: 6px; flex: 1; background: rgba(0,0,0,0.1); border-radius: 1px; margin: 0 1px; }
         .grid-cell.active { background: var(--gold-text); box-shadow: 0 0 5px var(--gold-text); }
-
         .clan-card-header { display: flex; justify-content: space-between; align-items: center; min-height: 24px; }
         .player-info-block { display: flex; align-items: center; gap: 4px; }
         .status-space { width: 16px; display: flex; justify-content: center; align-items: center; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #00ff88; box-shadow: 0 0 8px #00ff88; }
-        
         .hall-of-fame-card { border: 1px solid var(--gold-text) !important; box-shadow: 0 0 10px rgba(166, 139, 90, 0.2); }
         .crown-icon { color: #ffcc00; margin-left: 8px; font-size: 1.1em; }
-
         .discord-btn { display: block; background-color: #5d6d85; color: white; text-decoration: none; text-align: center; padding: 14px; border-radius: 4px; font-weight: 700; margin: 25px 0 15px; text-transform: uppercase; font-size: 0.85em; transition: 0.3s; }
         #reset-btn { width: 100%; background: transparent; border: 1px solid var(--gold-text); color: var(--gold-text); padding: 10px; cursor: pointer; font-weight: 700; font-family: var(--font-main); transition: 0.3s; }
         .logout-link { display: inline-block; margin-top: 15px; font-size: 0.7em; color: #ff4d4d; cursor: pointer; text-decoration: underline; font-weight: 700; text-transform: uppercase; opacity: 0.7; }
@@ -273,7 +266,7 @@ function App() {
 
         <div className="footer-ui">
             <a href="https://discord.gg/VcczersTWR" target="_blank" rel="noreferrer" className="discord-btn">JOIN DISCORD: AETERNUM INVICTUS</a>
-            <div style={{textAlign:'center', fontSize:'0.7em', opacity:0.6}}>Orbital System v2.8.3 | <b>LISERDI & Аугмент</b></div>
+            <div style={{textAlign:'center', fontSize:'0.7em', opacity:0.6}}>Orbital System v2.8.6 | <b>LISERDI & Аугмент</b></div>
             <div className="footer-controls">
                 <button id="reset-btn" onClick={() => { if(window.confirm("Скинути ваш прогрес?")) { setMyData({}); setDoc(doc(db, "players", nick), {progress:{}, total:0}, {merge:true}); }}}>СКИНУТИ ТИЖДЕНЬ ВРУЧНУ</button>
                 <div className="logout-link" onClick={() => deletePlayer(nick)}>Видалити свій нікнейм та вийти</div>
@@ -284,5 +277,4 @@ function App() {
   );
 }
 
-// Запуск додатка
 createRoot(document.getElementById('root')).render(<App />);
