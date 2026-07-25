@@ -17,10 +17,14 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // --- ДИНАМІЧНІ ДАНІ ---
+// Кольори прив'язані до індексу кольору напряму, а не витягуються з готового
+// тексту пошуком підрядка — раніше одна одруківка в реченні ламала підсвітку.
+const BIRD_COLORS = { "Блакитний": "#4da6ff", "Бурштиновий": "#ffff00", "Багряний": "#ff4d4d" };
 const getBird3 = () => {
     const s = ["Блакитний", "Бурштиновий", "Багряний"], start = new Date('2026-01-19T00:00:00Z');
     const w = Math.floor((new Date() - start) / 604800000);
-    return `Bird 3: ${s[(1 + w) % 3]} архонтовий уламок`;
+    const name = s[(1 + w) % 3];
+    return { text: `Bird 3: ${name} архонтовий уламок`, color: BIRD_COLORS[name] };
 };
 
 const getCircN = () => {
@@ -48,6 +52,16 @@ function App() {
 
   const isAdmin = nick.toUpperCase() === 'LISERDI' || nick.toUpperCase() === 'АУГМЕНТ';
 
+  // Нік завжди нормалізуємо до верхнього регістру перед збереженням, інакше
+  // "Liserdi" і "LISERDI" створювали б два різні документи в Firestore і
+  // прогрес одного гравця "губився" би через регістр символів.
+  const login = (raw) => {
+    const v = raw.trim().toUpperCase();
+    if (!v) return;
+    setNick(v);
+    localStorage.setItem('wf_nick', v);
+  };
+
   useEffect(() => {
     if (!nick) return;
     const heartbeat = () => setDoc(doc(db, "players", nick), { lastSeen: Date.now() }, { merge: true });
@@ -63,15 +77,28 @@ function App() {
       .catch(() => setTeshin("Тешін: Перевірити ротацію вручну"));
   }, []);
 
+  const [syncError, setSyncError] = useState(null);
+
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "players"), (snapshot) => {
-      const players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setClanPlayers(players);
-      if (nick) {
-        const me = players.find(p => p.id === nick);
-        setMyData(me?.progress || {});
+    const unsub = onSnapshot(
+      collection(db, "players"),
+      (snapshot) => {
+        setSyncError(null);
+        const players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setClanPlayers(players);
+        if (nick) {
+          const me = players.find(p => p.id === nick);
+          setMyData(me?.progress || {});
+        }
+      },
+      (err) => {
+        // Раніше помилка (напр. відмова доступу в правилах Firestore чи
+        // втрата з'єднання) просто потрапляла в консоль, і клан-хаб міг
+        // навічно зависнути на порожньому списку без пояснення.
+        console.error('Firestore sync error:', err);
+        setSyncError('Немає зв’язку з базою. Прогрес зберігається лише локально.');
       }
-    });
+    );
     return () => unsub();
   }, [nick]);
 
@@ -92,6 +119,7 @@ function App() {
     return () => clearInterval(t);
   }, []);
 
+  const bird3 = getBird3();
   const tasks = {
     "1999": [
         {id:'dn', text: "Спуск: Отримати нагороди"},
@@ -105,7 +133,7 @@ function App() {
     "ОРБІТР": [
         {id:'teshin', text: teshin},
         {id:'iron', text: "Залізна Фортеця: Витратити уламки розколу"},
-        {id:'bird', text: getBird3(), isBird: true},
+        {id:'bird', text: bird3.text, color: bird3.color, isBird: true},
         {id:'archon', text: "Архонтове полювання"}
     ],
     "ДУВІРІ": [
@@ -146,11 +174,8 @@ function App() {
         <div className="login-card">
           <h1>Orbital Tracker</h1>
           <p style={{fontSize:'0.85em', fontWeight:700, marginBottom:'15px'}}>ВВЕДІТЬ ВАШ ІГРОВИЙ НІКНЕЙМ</p>
-          <input id="nInput" placeholder="NICKNAME..." onKeyPress={(e) => { if(e.key === 'Enter') { const v = e.target.value.trim(); if(v) { setNick(v); localStorage.setItem('wf_nick', v); }}}} />
-          <button onClick={() => {
-            const v = document.getElementById('nInput').value.trim();
-            if(v) { setNick(v); localStorage.setItem('wf_nick', v); }
-          }}>ПІДКЛЮЧИТИСЯ</button>
+          <input id="nInput" placeholder="NICKNAME..." onKeyDown={(e) => { if(e.key === 'Enter') login(e.target.value); }} />
+          <button onClick={() => login(document.getElementById('nInput').value)}>ПІДКЛЮЧИТИСЯ</button>
         </div>
       </div>
     );
@@ -209,6 +234,7 @@ function App() {
             <h1>Orbital Tracker</h1>
             <div className="fuse-container"><div className="fuse-fill" style={{width: `${timerPercent}%`}}></div></div>
             <div id="reset-timer">До оновлення: {timeLeft}</div>
+            {syncError && <div style={{textAlign:'center', fontSize:'0.75em', color:'#ff4d4d', marginBottom:'10px', fontWeight:700}}>{syncError}</div>}
         </header>
 
         <div className="tab-nav">
@@ -223,7 +249,7 @@ function App() {
                         <div className="category-title">{catName}</div>
                         {items.map(t => (
                             <div key={t.id} className={`item ${myData[t.id] ? 'checked-item' : ''}`} 
-                                 style={t.isBird && t.text.includes("БУРШТИНОВИЙ") ? {borderLeftColor:'#ffff00'} : t.isBird && t.text.includes("БАГРЯНИЙ") ? {borderLeftColor:'#ff4d4d'} : t.isBird ? {borderLeftColor:'#4da6ff'} : {}}
+                                 style={t.isBird ? {borderLeftColor: t.color} : {}}
                                  onClick={() => toggleTask(t.id)}>
                                 <input type="checkbox" checked={!!myData[t.id]} readOnly style={{cursor:'pointer'}} />
                                 <label style={{marginLeft:'15px', fontWeight:600, textDecoration: myData[t.id] ? 'line-through' : 'none', opacity: myData[t.id] ? 0.6 : 1, pointerEvents:'none'}}>{t.text}</label>
